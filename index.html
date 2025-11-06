@@ -867,9 +867,16 @@ If INCORRECT, suggest which URL it should redirect to.`;
 
         // Load API key on page load
         window.addEventListener('DOMContentLoaded', () => {
-            // Pre-fill API key if available
-            const savedApiKey = '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';
+            // Load API key from localStorage only - NO HARDCODED KEYS FOR SECURITY
+            const savedApiKey = localStorage.getItem('openai_api_key') || '';
             document.getElementById('apiKey').value = savedApiKey;
+
+            // Auto-save API key to localStorage when user enters it
+            document.getElementById('apiKey').addEventListener('blur', (e) => {
+                if (e.target.value) {
+                    localStorage.setItem('openai_api_key', e.target.value);
+                }
+            });
         });
     </script>
 </body>
