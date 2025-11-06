@@ -292,6 +292,11 @@
         <div class="content">
             <div class="input-section">
                 <div class="input-group">
+                    <label for="apiKey">🔑 OpenAI API Key:</label>
+                    <input type="text" id="apiKey" placeholder="sk-proj-..." value="">
+                </div>
+
+                <div class="input-group">
                     <label for="sitemapUrl">🗺️ Yoast Sitemap URL:</label>
                     <input type="text" id="sitemapUrl" placeholder="https://www.example.com/sitemap_index.xml" value="">
                     <small style="color: #666; margin-top: 5px; display: block;">Or paste sitemap XML content below if URL fetch fails</small>
@@ -597,13 +602,17 @@ If INCORRECT, suggest which URL it should redirect to.`;
         }
 
         async function analyzeRedirects() {
-            // Embedded API key
-            const apiKey = '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';
+            const apiKey = document.getElementById('apiKey').value.trim();
             const sitemapUrl = document.getElementById('sitemapUrl').value.trim();
             const sitemapContent = document.getElementById('sitemapContent').value.trim();
             const htaccessContent = document.getElementById('htaccessContent').value;
 
             // Validation
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key');
+                return;
+            }
+
             if (!sitemapUrl && !sitemapContent) {
                 alert('Please enter the sitemap URL or paste the sitemap XML content');
                 return;
@@ -855,6 +864,13 @@ If INCORRECT, suggest which URL it should redirect to.`;
                 console.error(error);
             }
         }
+
+        // Load API key on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill API key if available
+            const savedApiKey = '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';
+            document.getElementById('apiKey').value = savedApiKey;
+        });
     </script>
 </body>
 </html>
