@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>htaccess Redirect Checker - Yoast Sitemap Validator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .input-group input[type="text"],
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input[type="text"]:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .result-section {
+            margin-bottom: 30px;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .redirect-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .redirect-item.error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .redirect-item.success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .redirect-item.warning {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .redirect-item .source {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .redirect-item .target {
+            font-family: 'Courier New', monospace;
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+
+        .redirect-item .message {
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .redirect-item .ai-analysis {
+            background: white;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        .sitemap-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .sitemap-list h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .sitemap-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .sitemap-list li {
+            padding: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .api-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .api-warning strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 htaccess Redirect Checker</h1>
+            <p>Validate Redirect 301 & Redirect gone against Yoast XML Sitemaps with AI Analysis</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="sitemapUrl">🗺️ Yoast Sitemap URL:</label>
+                    <input type="text" id="sitemapUrl" placeholder="https://www.example.com/sitemap_index.xml" value="">
+                    <small style="color: #666; margin-top: 5px; display: block;">Or paste sitemap XML content below if URL fetch fails</small>
+                </div>
+
+                <div class="input-group" id="sitemapContentGroup" style="display: none;">
+                    <label for="sitemapContent">📋 Sitemap XML Content (Optional - if URL fetch fails):</label>
+                    <textarea id="sitemapContent" placeholder="Paste sitemap XML content here if automatic fetch fails...&#10;&#10;<?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#10;<urlset>...</urlset>" style="min-height: 150px;"></textarea>
+                    <small style="color: #666; margin-top: 5px; display: block;">Visit your sitemap URL, copy all XML content, and paste it here</small>
+                </div>
+
+                <button class="btn" onclick="toggleSitemapContent()" style="background: #6c757d; margin-right: 10px; padding: 10px 20px;">
+                    📋 Toggle Manual Sitemap Input
+                </button>
+
+                <div class="input-group">
+                    <label for="htaccessContent">📄 htaccess Content:</label>
+                    <textarea id="htaccessContent" placeholder="Paste your htaccess content here...&#10;&#10;Example:&#10;Redirect 301 /old-page.html https://www.example.com/new-page/&#10;Redirect gone /deleted-page.html"></textarea>
+                </div>
+
+                <button class="btn" onclick="analyzeRedirects()">🚀 Analyze Redirects</button>
+            </div>
+
+            <div id="results" class="results" style="display: none;">
+                <div id="statusMessage" class="status"></div>
+
+                <div id="progressContainer" style="display: none;">
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <div id="statsContainer" style="display: none;"></div>
+                <div id="sitemapInfo" style="display: none;"></div>
+                <div id="redirect301Results" style="display: none;"></div>
+                <div id="redirectGoneResults" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allSitemapUrls = [];
+        let redirect301List = [];
+        let redirectGoneList = [];
+
+        function updateProgress(percent, message = '') {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = message || percent + '%';
+        }
+
+        function showStatus(message, type = 'loading') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function toggleSitemapContent() {
+            const sitemapContentGroup = document.getElementById('sitemapContentGroup');
+            if (sitemapContentGroup.style.display === 'none') {
+                sitemapContentGroup.style.display = 'block';
+            } else {
+                sitemapContentGroup.style.display = 'none';
+            }
+        }
+
+        function parseSitemapXML(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+            // Check for XML parsing errors
+            const parserError = xmlDoc.querySelector('parsererror');
+            if (parserError) {
+                throw new Error('XML parsing error');
+            }
+
+            const urls = xmlDoc.querySelectorAll('url loc');
+            return Array.from(urls).map(loc => loc.textContent);
+        }
+
+        async function fetchSitemapUrls(sitemapUrl) {
+            // Try multiple CORS proxies
+            const corsProxies = [
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest=',
+                'https://cors-anywhere.herokuapp.com/',
+                '' // Direct fetch (will work if CORS is allowed)
+            ];
+
+            for (let proxyIndex = 0; proxyIndex < corsProxies.length; proxyIndex++) {
+                try {
+                    const proxyUrl = corsProxies[proxyIndex];
+                    const fetchUrl = proxyUrl + encodeURIComponent(sitemapUrl);
+
+                    console.log(`Attempting to fetch with proxy ${proxyIndex + 1}/${corsProxies.length}: ${proxyUrl || 'direct'}`);
+
+                    const response = await fetch(fetchUrl, {
+                        method: 'GET',
+                        headers: proxyUrl === '' ? {} : { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const text = await response.text();
+
+                    if (!text || text.length < 10) {
+                        throw new Error('Empty or invalid response');
+                    }
+
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+                    // Check for XML parsing errors
+                    const parserError = xmlDoc.querySelector('parsererror');
+                    if (parserError) {
+                        throw new Error('XML parsing error');
+                    }
+
+                    // Check if it's a sitemap index
+                    const sitemaps = xmlDoc.querySelectorAll('sitemap loc');
+
+                    if (sitemaps.length > 0) {
+                        // It's a sitemap index, fetch all sub-sitemaps
+                        const subSitemaps = Array.from(sitemaps).map(loc => loc.textContent);
+                        let allUrls = [];
+
+                        for (let i = 0; i < subSitemaps.length; i++) {
+                            updateProgress(30 + (i / subSitemaps.length * 30), `Fetching sitemap ${i + 1}/${subSitemaps.length}`);
+                            const result = await fetchSitemapUrls(subSitemaps[i]);
+                            allUrls = allUrls.concat(result.urls);
+                        }
+
+                        console.log(`Successfully fetched ${allUrls.length} URLs from sitemap index`);
+                        return { urls: allUrls, sitemaps: subSitemaps };
+                    } else {
+                        // It's a regular sitemap with URLs
+                        const urls = xmlDoc.querySelectorAll('url loc');
+                        const urlList = Array.from(urls).map(loc => loc.textContent);
+                        console.log(`Successfully fetched ${urlList.length} URLs from sitemap`);
+                        return { urls: urlList, sitemaps: [] };
+                    }
+                } catch (error) {
+                    console.error(`Proxy ${proxyIndex + 1} failed:`, error);
+
+                    // If this was the last proxy, throw the error
+                    if (proxyIndex === corsProxies.length - 1) {
+                        throw new Error(`Failed to fetch sitemap after trying ${corsProxies.length} methods. Please check the sitemap URL or try copying the sitemap content manually. Error: ${error.message}`);
+                    }
+
+                    // Otherwise, continue to next proxy
+                    console.log('Trying next proxy...');
+                }
+            }
+        }
+
+        function parseHtaccess(content) {
+            const lines = content.split('\n');
+            const redirect301 = [];
+            const redirectGone = [];
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+
+                // Match Redirect 301
+                const match301 = trimmed.match(/^Redirect\s+301\s+(\S+)\s+(\S+)/i);
+                if (match301) {
+                    redirect301.push({
+                        source: match301[1],
+                        target: match301[2],
+                        line: line.trim()
+                    });
+                }
+
+                // Match Redirect gone
+                const matchGone = trimmed.match(/^Redirect\s+gone\s+(\S+)/i);
+                if (matchGone) {
+                    redirectGone.push({
+                        source: matchGone[1],
+                        line: line.trim()
+                    });
+                }
+            }
+
+            return { redirect301, redirectGone };
+        }
+
+        async function analyzeWithAI(apiKey, redirect, sitemapUrls, type) {
+            try {
+                let prompt = '';
+
+                if (type === '301') {
+                    const targetExists = sitemapUrls.includes(redirect.target);
+
+                    // Find potential semantic matches in sitemap
+                    const sourcePath = redirect.source.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim();
+                    const sourceKeywords = sourcePath.split(/\s+/).filter(w => w.length > 2);
+
+                    const potentialMatches = sitemapUrls.filter(url => {
+                        const urlLower = url.toLowerCase();
+                        return sourceKeywords.some(keyword => urlLower.includes(keyword));
+                    }).slice(0, 5);
+
+                    prompt = `Analyze this 301 redirect for SEMANTIC CORRECTNESS:
+
+Source: ${redirect.source}
+Target: ${redirect.target}
+
+Target URL ${targetExists ? 'EXISTS' : 'DOES NOT EXIST'} in live sitemap.
+
+${potentialMatches.length > 0 ? `\nPotential semantic matches found in sitemap:\n${potentialMatches.map(u => '- ' + u).join('\n')}` : ''}
+
+CRITICAL TASK:
+1. Does the TARGET URL make semantic sense for the SOURCE URL?
+   Example: /meet-the-doctor.html → /technology/ is WRONG (unrelated content)
+   Example: /meet-the-doctor.html → /meet-the-doctor/ is CORRECT (same content)
+2. Is the source being redirected to the RIGHT destination based on content/purpose?
+3. If target doesn't exist in sitemap, is this an error?
+4. Should it redirect to one of the potential matches instead?
+
+Provide verdict: CORRECT (semantically right), INCORRECT (wrong target), or WARNING (questionable).
+Give specific reason why it's correct/incorrect.`;
+                } else {
+                    const sourceInSitemap = sitemapUrls.some(url => url.includes(redirect.source.replace(/^\//, '')));
+
+                    // Find potential semantic matches for redirect gone
+                    const sourcePath = redirect.source.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim();
+                    const sourceKeywords = sourcePath.split(/\s+/).filter(w => w.length > 2);
+
+                    const potentialAlternatives = sitemapUrls.filter(url => {
+                        const urlLower = url.toLowerCase();
+                        return sourceKeywords.some(keyword => urlLower.includes(keyword));
+                    }).slice(0, 5);
+
+                    prompt = `Analyze this "Redirect gone" directive for CORRECTNESS:
+
+Source: ${redirect.source}
+
+Source URL ${sourceInSitemap ? 'STILL EXISTS' : 'does not exist'} in current sitemap.
+
+${potentialAlternatives.length > 0 ? `\nPotential alternative URLs in sitemap:\n${potentialAlternatives.map(u => '- ' + u).join('\n')}` : 'No similar URLs found in sitemap.'}
+
+CRITICAL TASK:
+1. Should this be "Redirect gone" or should it be "Redirect 301" to an alternative?
+   Example: "Redirect gone /meet-the-team.html" is WRONG if /team/ exists in sitemap
+   Example: "Redirect gone /meet-the-team.html" is CORRECT if truly no team page exists
+2. If alternatives exist, which one is the best match?
+3. Is marking this as "gone" the right decision?
+
+Provide verdict: CORRECT (should be gone), INCORRECT (should redirect instead), or WARNING.
+If INCORRECT, suggest which URL it should redirect to.`;
+                }
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are an expert in htaccess redirects, SEO, and semantic URL analysis. Your job is to determine if redirects are SEMANTICALLY CORRECT - not just technically valid. Be strict about semantic matching.'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        max_tokens: 200,
+                        temperature: 0.2
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API error: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('AI Analysis error:', error);
+                return `AI analysis unavailable: ${error.message}`;
+            }
+        }        function normalizeUrl(url, baseUrl) {
+            try {
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+                if (url.startsWith('/')) {
+                    const base = new URL(baseUrl);
+                    return base.origin + url;
+                }
+                return url;
+            } catch {
+                return url;
+            }
+        }
+
+        async function analyzeRedirects() {
+            // Embedded API key
+            const apiKey = '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';
+            const sitemapUrl = document.getElementById('sitemapUrl').value.trim();
+            const sitemapContent = document.getElementById('sitemapContent').value.trim();
+            const htaccessContent = document.getElementById('htaccessContent').value;
+
+            // Validation
+            if (!sitemapUrl && !sitemapContent) {
+                alert('Please enter the sitemap URL or paste the sitemap XML content');
+                return;
+            }
+
+            if (!htaccessContent) {
+                alert('Please paste your htaccess content');
+                return;
+            }
+
+            // Reset UI
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('sitemapInfo').style.display = 'none';
+            document.getElementById('redirect301Results').style.display = 'none';
+            document.getElementById('redirectGoneResults').style.display = 'none';
+
+            try {
+                // Step 1: Parse htaccess
+                showStatus('📋 Parsing htaccess file...', 'loading');
+                updateProgress(10, 'Parsing htaccess');
+
+                const { redirect301, redirectGone } = parseHtaccess(htaccessContent);
+                redirect301List = redirect301;
+                redirectGoneList = redirectGone;
+
+                // Step 2: Fetch or parse sitemap
+                showStatus('🗺️ Fetching sitemap URLs...', 'loading');
+                updateProgress(20, 'Fetching sitemap');
+
+                let sitemapData;
+
+                if (sitemapContent) {
+                    // Use manual sitemap content
+                    showStatus('📋 Parsing manual sitemap content...', 'loading');
+                    try {
+                        const urls = parseSitemapXML(sitemapContent);
+                        sitemapData = { urls: urls, sitemaps: [] };
+                        allSitemapUrls = sitemapData.urls;
+                    } catch (error) {
+                        throw new Error(`Failed to parse sitemap XML: ${error.message}`);
+                    }
+                } else {
+                    // Fetch from URL
+                    sitemapData = await fetchSitemapUrls(sitemapUrl);
+                    allSitemapUrls = sitemapData.urls;
+                }
+
+                // Display sitemap info
+                const sitemapInfoHtml = `
+                    <div class="sitemap-list">
+                        <h4>📊 Sitemap Information</h4>
+                        <p><strong>Total URLs found:</strong> ${allSitemapUrls.length}</p>
+                        ${sitemapData.sitemaps.length > 0 ? `
+                            <p><strong>Sub-sitemaps:</strong></p>
+                            <ul>
+                                ${sitemapData.sitemaps.map(sm => `<li>${sm}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `;
+                document.getElementById('sitemapInfo').innerHTML = sitemapInfoHtml;
+                document.getElementById('sitemapInfo').style.display = 'block';
+
+                // Step 3: Analyze Redirect 301
+                showStatus('🔍 Analyzing Redirect 301 directives...', 'loading');
+                const redirect301Results = [];
+
+                for (let i = 0; i < redirect301.length; i++) {
+                    updateProgress(60 + (i / redirect301.length * 20), `Analyzing 301 redirect ${i + 1}/${redirect301.length}`);
+
+                    const redirect = redirect301[i];
+                    const targetExists = allSitemapUrls.includes(redirect.target);
+                    const aiAnalysis = await analyzeWithAI(apiKey, redirect, allSitemapUrls, '301');
+
+                    // Determine status based on AI analysis
+                    let status = 'success';
+                    let message = '✅ Redirect appears correct';
+
+                    // Check AI verdict
+                    const aiLower = aiAnalysis.toLowerCase();
+
+                    if (aiLower.includes('incorrect') || aiLower.includes('wrong')) {
+                        status = 'error';
+                        message = '❌ INCORRECT: Target may be semantically wrong';
+                    } else if (aiLower.includes('warning') || aiLower.includes('questionable')) {
+                        status = 'warning';
+                        message = '⚠️ WARNING: Potential issues detected';
+                    } else if (!targetExists) {
+                        status = 'warning';
+                        message = '⚠️ WARNING: Target URL not found in sitemap';
+                    }
+
+                    redirect301Results.push({
+                        redirect,
+                        status,
+                        message,
+                        aiAnalysis,
+                        targetExists
+                    });
+                }
+
+                // Step 4: Analyze Redirect gone
+                showStatus('🔍 Analyzing Redirect gone directives...', 'loading');
+                const redirectGoneResults = [];
+
+                for (let i = 0; i < redirectGone.length; i++) {
+                    updateProgress(80 + (i / Math.max(redirectGone.length, 1) * 15), `Analyzing gone redirect ${i + 1}/${redirectGone.length}`);
+
+                    const redirect = redirectGone[i];
+                    const baseUrl = new URL(sitemapUrl).origin;
+                    const fullSourceUrl = normalizeUrl(redirect.source, baseUrl);
+
+                    const sourceInSitemap = allSitemapUrls.some(url =>
+                        url === fullSourceUrl || url.includes(redirect.source.replace(/^\//, ''))
+                    );
+
+                    const aiAnalysis = await analyzeWithAI(apiKey, redirect, allSitemapUrls, 'gone');
+
+                    // Determine status based on AI analysis
+                    let status = 'success';
+                    let message = '✅ Correctly marked as gone';
+
+                    const aiLower = aiAnalysis.toLowerCase();
+
+                    if (aiLower.includes('incorrect') || aiLower.includes('should redirect')) {
+                        status = 'error';
+                        message = '❌ INCORRECT: Should be Redirect 301 instead';
+                    } else if (aiLower.includes('warning')) {
+                        status = 'warning';
+                        message = '⚠️ WARNING: Review recommended';
+                    } else if (sourceInSitemap) {
+                        status = 'error';
+                        message = '❌ ERROR: Source URL still exists in sitemap!';
+                    }
+
+                    redirectGoneResults.push({
+                        redirect,
+                        status,
+                        message,
+                        aiAnalysis,
+                        sourceInSitemap
+                    });
+                }
+
+                // Step 5: Display results
+                updateProgress(100, 'Complete!');
+                showStatus('✅ Analysis complete!', 'success');
+
+                // Stats
+                const total301 = redirect301Results.length;
+                const correct301 = redirect301Results.filter(r => r.status === 'success').length;
+                const warning301 = redirect301Results.filter(r => r.status === 'warning').length;
+                const error301 = redirect301Results.filter(r => r.status === 'error').length;
+
+                const totalGone = redirectGoneResults.length;
+                const correctGone = redirectGoneResults.filter(r => r.status === 'success').length;
+                const warningGone = redirectGoneResults.filter(r => r.status === 'warning').length;
+                const errorGone = redirectGoneResults.filter(r => r.status === 'error').length;
+
+                const statsHtml = `
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="number">${total301}</div>
+                            <div class="label">Redirect 301 Total</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="number">${correct301}</div>
+                            <div class="label">✓ Correct 301</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="number">${warning301}</div>
+                            <div class="label">⚠ Warning 301</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <div class="number">${error301}</div>
+                            <div class="label">✗ Incorrect 301</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${totalGone}</div>
+                            <div class="label">Redirect Gone Total</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="number">${correctGone}</div>
+                            <div class="label">✓ Correct Gone</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="number">${warningGone}</div>
+                            <div class="label">⚠ Warning Gone</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <div class="number">${errorGone}</div>
+                            <div class="label">✗ Incorrect Gone</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('statsContainer').innerHTML = statsHtml;
+                document.getElementById('statsContainer').style.display = 'block';
+
+                // Redirect 301 Results
+                if (redirect301Results.length > 0) {
+                    const results301Html = `
+                        <div class="result-section">
+                            <h3>🔄 Redirect 301 Analysis</h3>
+                            ${redirect301Results.map(r => `
+                                <div class="redirect-item ${r.status}">
+                                    <div class="source"><strong>Source:</strong> ${r.redirect.source}</div>
+                                    <div class="target"><strong>Target:</strong> ${r.redirect.target}</div>
+                                    <div class="message">${r.message}</div>
+                                    <div class="ai-analysis">
+                                        <strong>🤖 AI Analysis:</strong><br>
+                                        ${r.aiAnalysis}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    document.getElementById('redirect301Results').innerHTML = results301Html;
+                    document.getElementById('redirect301Results').style.display = 'block';
+                }
+
+                // Redirect gone Results
+                if (redirectGoneResults.length > 0) {
+                    const resultsGoneHtml = `
+                        <div class="result-section">
+                            <h3>🚫 Redirect Gone Analysis</h3>
+                            ${redirectGoneResults.map(r => `
+                                <div class="redirect-item ${r.status}">
+                                    <div class="source"><strong>Source:</strong> ${r.redirect.source}</div>
+                                    <div class="message">${r.message}</div>
+                                    <div class="ai-analysis">
+                                        <strong>🤖 AI Analysis:</strong><br>
+                                        ${r.aiAnalysis}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    document.getElementById('redirectGoneResults').innerHTML = resultsGoneHtml;
+                    document.getElementById('redirectGoneResults').style.display = 'block';
+                }
+
+                document.getElementById('progressContainer').style.display = 'none';
+
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                document.getElementById('progressContainer').style.display = 'none';
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
